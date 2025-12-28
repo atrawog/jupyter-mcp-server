@@ -19,9 +19,10 @@ logger = logging.getLogger(__name__)
 class UseNotebookTool(BaseTool):
     """Tool to use (connect to or create) a notebook file."""
     
-    async def _start_kernel_local(self, kernel_manager: Any):
+    async def _start_kernel_local(self, kernel_manager: Any, path: str | None = None):
         # Start a new kernel using local API
-        kernel_id = await kernel_manager.start_kernel()
+        # Pass the path to set the kernel's working directory
+        kernel_id = await kernel_manager.start_kernel(path=path)
         logger.info(f"Started kernel '{kernel_id}', waiting for it to be ready...")
         
         # CRITICAL: Wait for the kernel to actually start and be ready
@@ -214,7 +215,9 @@ class UseNotebookTool(BaseTool):
                         return f"Kernel '{kernel_id}' not found in local kernel manager."
                     kernel = {"id": kernel_id}
                 else:
-                    kernel = await self._start_kernel_local(kernel_manager)
+                    # FIXED: Start kernel with notebook's directory as working directory
+                    notebook_dir = str(Path(notebook_path).parent) if notebook_path else None
+                    kernel = await self._start_kernel_local(kernel_manager, path=notebook_dir)
                     kernel_id = kernel['id']
 
                 info_list.append(f"[INFO] Connected to kernel '{kernel_id}'.")
