@@ -200,8 +200,10 @@ class UseNotebookTool(BaseTool):
                     token=runtime_token,
                     kernel_id=kernel_id
                 )
-                # FIXED: Ensure kernel is started with the same path as the notebook
-                kernel.start(path=notebook_path)
+                # FIXED: Ensure kernel is started with the notebook's directory as working directory
+                # The path parameter expects a directory, not the full notebook path
+                notebook_dir = str(Path(notebook_path).parent) if notebook_path else None
+                kernel.start(path=notebook_dir)
 
                 info_list.append(f"[INFO] Connected to kernel '{kernel.id}'.")
             elif mode == ServerMode.JUPYTER_SERVER and kernel_manager is not None:
